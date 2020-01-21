@@ -19,32 +19,29 @@ class SqlIO:
         self.connect = sqlite3.connect(database)
         self.tables = {}
         self.count = 0
-        self.commitlimit = 512 # commit after 512 inserts
+        self.commitlimit = 512  # commit after 512 inserts
         self.SqlRefresh()
 
     def SqlRefresh(self):
         # read existed tables
         sql1 = "select name from main.sqlite_master WHERE type=\'table\'"
         cursor = self.connect.cursor()
-        cursor2=self.connect.cursor()
         count = cursor.execute(sql1)
 
         # tables=count.fetchall()
         # print(tables)
         # print(tables[0][0])  #[('QA',), ('sqlite_stat1',), ('sqlite_stat4',)]
 
-
         for row in count:
             if row[0] is not None:
                 # continue
                 tmp = []
-                for column in cursor2.execute('PRAGMA table_info(' + str(row[0]) + ')'):
+                for column in cursor.execute('PRAGMA table_info(' + str(row[0]) + ')'):
                     tmp.append(column[1])
                 # self.tables[row[0]] = (tmp[0], tmp.pop(0), len(tmp) + 1)
                 # self.tables[row[0]]=tuple(tmp)+(len(tmp),)
-                primary=tmp.pop(0)
-                self.tables[row[0]]=table(primary,tmp,len(tmp)+1)
-
+                primary = tmp.pop(0)
+                self.tables[row[0]] = table(primary, tmp, len(tmp) + 1)
 
     def SqlTableExists(self, table_name):
         # judge whether a table exists
@@ -58,6 +55,16 @@ class SqlIO:
         cursor.close()
         return False
 
+    def SqlPrimaryExists(self, table_name, primary_name, query):
+        sql = "select * from " + table_name + " where " + primary_name + " = \'" + query + "\'"
+        cursor = self.connect.cursor()
+        count = cursor.execute(sql)
+        for row in count:
+            if row[0] == query:
+                cursor.close()
+                return True
+        cursor.close()
+        return False
 
     def SqlMake(self, table_name, primary, primary_len, terms, terms_len):
         # make a table
@@ -70,7 +77,6 @@ class SqlIO:
         cursor.execute(sql)
         cursor.close()
 
-
     def SqlReader(self, table_name, column):
         # read single column
         sql = "select " + column + " from " + table_name
@@ -81,7 +87,6 @@ class SqlIO:
         cursor.close()
         return tmp
 
-
     def SqlColumnsReader(self, table_name, columns):
         # read many columns
         tmp = []
@@ -89,14 +94,13 @@ class SqlIO:
             tmp.append(self.SqlReader(table_name, i))
         return transpose(tmp)
 
-
     def SqlInsert(self, table_name, data):
         # insert a record in dictionary form, throw exception when primary key is invalid
         sql = "insert into " + table_name + " values " + "("
         current_table = self.tables[table_name]
         sql += '?'
         for i in range(current_table.size - 1):
-        # for i in range(len(current_table) - 1):
+            # for i in range(len(current_table) - 1):
             sql += ",?"
         sql += ")"
         tmp = []
@@ -118,7 +122,6 @@ class SqlIO:
             self.count = 0
         else:
             self.count += 1
-
 
     def SqlDeletetable(self, table_name):
         # add some instructions in case user deletes tables casually.
@@ -152,11 +155,10 @@ class SqlIO:
             print("Please check your table name.")
             return False
 
-
     def Sqlexecute(self, sql):
         # simply execute input sql and return the result
-        cursor=self.connect.cursor()
-        result_table=cursor.execute(sql)
+        cursor = self.connect.cursor()
+        result_table = cursor.execute(sql)
 
         # count=0
         # for row in result_table:
@@ -169,11 +171,9 @@ class SqlIO:
         # self.connect.execute(sql_create)
         return result_table
 
-
     # def SqlDeleteRow(self,table_name,sql):
     #     cursor=self.connect.cursor()
     #     cursor.execute(str)
-
 
     def SqlCommit(self):
         self.connect.commit()
@@ -181,15 +181,3 @@ class SqlIO:
     def __del__(self):
         self.connect.commit()
         self.connect.close()
-
-
-if __name__ == '__main__':
-    database=SqlIO('sjtu.db')
-    # print(database.SqlTableExists('QA_sentiment'))
-    # print(database.tables['make_sjtu_great_again'].columns)
-
-    # sql = 'select question_url,make_sjtu_great_again.question,follower,viewed,date,answers, \
-    #         QA_sentiment.question,positive_prob,confidence,negative_prob,sentiment\
-    #         from make_sjtu_great_again left join QA_sentiment on \
-    #         make_sjtu_great_again.question=QA_sentiment.question'
-    # database.Sqlexecute(sql)

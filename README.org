@@ -1,0 +1,30 @@
+* An Extensible crawler for SJTU
+
+  This is a crawler based on trivial request and parse technique and
+  implemented in Python. It now support Undergraduate Education
+  Information Net, Undergraduate Net of SEIEE, official website of
+  Zhiyuan College and official website of SMSE.
+
+** Dependency
+
+  #+BEGIN_SRC python
+  requests
+  re
+  bs4
+  sqlite3
+  textrank4zh
+  #+END_SRC
+
+** Usage
+
+   The news is the return value of the Refresh method,
+
+   #+BEGIN_SRC python
+   spd = spider.spider()
+   result = spd.Refresh()
+   for i in result:
+       print(i)
+   #+END_SRC
+
+   the result will be the url, source, title, date, keywords and
+   abstract of each news.
